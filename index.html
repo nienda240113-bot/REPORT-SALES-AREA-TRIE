@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aplikasi Report Sales Harian 20 Toko</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-100 text-slate-800 font-sans">
+    <div class="max-w-4xl mx-auto p-4 sm:p-6">
+        <header class="bg-blue-600 text-white p-4 rounded-xl shadow-md mb-6 flex flex-col sm:flex-row justify-between items-center">
+            <div>
+                <h1 class="text-xl font-bold">REPORT SALES HARIAN</h1>
+                <p class="text-sm opacity-90">Area Bekasi - AM: SRD | AC: Triyanto</p>
+            </div>
+            <div class="mt-3 sm:mt-0 flex gap-2">
+                <button onclick="switchTab('input')" id="btnInput" class="bg-blue-700 px-4 py-2 rounded-lg text-sm font-semibold shadow">Input Toko</button>
+                <button onclick="switchTab('summary')" id="btnSummary" class="bg-blue-500 px-4 py-2 rounded-lg text-sm font-semibold shadow">Rekap 20 Toko</button>
+            </div>
+        </header>
+
+        <!-- INPUT SECTION -->
+        <div id="sectionInput" class="bg-white p-5 rounded-xl shadow-md">
+            <h2 class="text-lg font-bold border-b pb-2 mb-4 text-blue-600">Form Input Toko</h2>
+            <form id="salesForm" onsubmit="saveData(event)" class="space-y-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium">Periode Tanggal</label>
+                        <input type="date" id="tanggal" required class="w-full mt-1 p-2 border rounded-lg">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium">Shift</label>
+                        <select id="shift" class="w-full mt-1 p-2 border rounded-lg">
+                            <option value="1">Shift 1</option>
+                            <option value="2">Shift 2</option>
+                            <option value="3">Full / End of Day</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium">Pilih Toko Area (20 Toko)</label>
+                        <select id="selectToko" onchange="updateTokoInfo()" required class="w-full mt-1 p-2 border rounded-lg bg-slate-50 font-semibold text-blue-700">
+                            <option value="">-- Pilih Toko --</option>
+                            <option value="C624|RWBT">C624 - RWBT</option>
+                            <option value="C560|RAJ">C560 - RAJ</option>
+                            <option value="CH81|CDKS">CH81 - CDKS</option>
+                            <option value="CG76|SPMM">CG76 - SPMM</option>
+                            <option value="C573|GMM">C573 - GMM</option>
+                            <option value="CE47|MKRI">CE47 - MKRI</option>
+                            <option value="CI30|STTD">CI30 - STTD</option>
+                            <option value="CH41|KPMRK">CH41 - KPMRK</option>
+                            <option value="CG54|MM21">CG54 - MM21</option>
+                            <option value="C935|TLJ2">C935 - TLJ2</option>
+                            <option value="CA71|WSGN">CA71 - WSGN</option>
+                            <option value="C965|CBNU">C965 - CBNU</option>
+                            <option value="CG86|JKST">CG86 - JKST</option>
+                            <option value="CA94|KPTI">CA94 - KPTI</option>
+                            <option value="C574|SKU">C574 - SKU</option>
+                            <option value="CI15|RPSU">CI15 - RPSU</option>
+                            <option value="CI54|RJLB">CI54 - RJLB</option>
+                            <option value="CF50|DNIA">CF50 - DNIA</option>
+                            <option value="CC21|KUTN">CC21 - KUTN</option>
+                            <option value="CI84|TLKW">CI84 - TLKW</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium">Kode & Nama Toko Terpilih</label>
+                        <input type="text" id="infoTokoDisplay" readonly class="w-full mt-1 p-2 border rounded-lg bg-slate-100 text-slate-600 font-mono" placeholder="Otomatis terisi...">
+                        <input type="hidden" id="kodeToko">
+                        <input type="hidden" id="namaToko">
+                    </div>
+                </div>
+
+                <div class="border-t pt-4 mt-4">
+                    <h3 class="font-bold text-sm text-slate-700 mb-2">REVENUE</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="text-xs text-slate-500">Target MTD (Rp)</label>
+                            <input type="number" id="netSalesTarget" value="329236885" class="w-full p-2 border rounded-lg">
+                        </div>
+                        <div>
+                            <label class="text-xs text-slate-500">Actual Net Sales (Rp)</label>
+                            <input type="number" id="netSalesActual" placeholder="0" required class="w-full p-2 border rounded-lg">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="border-t pt-4 mt-4">
+                    <h3 class="font-bold text-sm text-slate-700 mb-2">FOKUS CABANG (Target / Actual)</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                        <div class="flex gap-2 items-center"><span class="w-32">Tebus Murah</span><input type="number" id="tmTgt" value="20" class="w-1/2 p-1 border rounded">/ <input type="number" id="tmAct" placeholder="Act" class="w-1/2 p-1 border rounded"></div>
+                        <div class="flex gap-2 items-center"><span class="w-32">Serba Gratis</span><input type="number" id="sgTgt" value="13" class="w-1/2 p-1 border rounded">/ <input type="number" id="sgAct" placeholder="Act" class="w-1/2 p-1 border rounded"></div>
+                        <div class="flex gap-2 items-center"><span class="w-32">Suuegeer</span><input type="number" id="suTgt" value="36" class="w-1/2 p-1 border rounded">/ <input type="number" id="suAct" placeholder="Act" class="w-1/2 p-1 border rounded"></div>
+                        <div class="flex gap-2 items-center"><span class="w-32">Promo Ceban</span><input type="number" id="pcTgt" value="89" class="w-1/2 p-1 border rounded">/ <input type="number" id="pcAct" placeholder="Act" class="w-1/2 p-1 border rounded"></div>
+                    </div>
+                </div>
+
+                <div class="border-t pt-4 mt-4">
+                    <h3 class="font-bold text-sm text-slate-700 mb-2">MEMBER & E-COMMERCE</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
+                        <div><label class="text-xs">New Member Act</label><input type="number" id="newMemberAct" value="0" class="w-full p-1 border rounded"></div>
+                        <div><label class="text-xs">Struk Member</label><input type="number" id="strukMember" value="44" class="w-full p-1 border rounded"></div>
+                        <div><label class="text-xs">Total Struk</label><input type="number" id="totalStruk" value="89" class="w-full p-1 border rounded"></div>
+                    </div>
+                    <div class="mt-3">
+                        <label class="text-xs">Fee Base E-Commerce (Rp)</label>
+                        <input type="number" id="feeBase" value="130000" class="w-full p-2 border rounded-lg">
+                    </div>
+                </div>
+
+                <div class="pt-4 flex gap-4">
+                    <button type="submit" id="saveBtn" class="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-xl shadow transition">Simpan Data Toko</button>
+                    <button type="button" onclick="generateWhatsAppReport()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-3 rounded-xl shadow transition">Copy WA Format</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- SUMMARY SECTION -->
+        <div id="sectionSummary" class="bg-white p-5 rounded-xl shadow-md hidden">
+            <div class="flex flex-col sm:flex-row justify-between items-center mb-4 gap-2">
+                <h2 class="text-lg font-bold text-blue-600">Rekapitulasi 20 Toko</h2>
+                <div class="flex gap-2">
+                    <input type="date" id="summaryDate" class="p-2 border rounded-lg text-sm">
+                    <button onclick="loadSummary()" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold">Muat Rekap</button>
+                </div>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse text-sm">
+                    <thead>
+                        <tr class="bg-slate-200 text-slate-700">
+                            <th class="p-2 border">Kode</th>
+                            <th class="p-2 border">Nama Toko</th>
+                            <th class="p-2 border">Net Sales (Rp)</th>
+                            <th class="p-2 border">Tebus Murah</th>
+                            <th class="p-2 border">Serba Gratis</th>
+                            <th class="p-2 border">New Member</th>
+                        </tr>
+                    </thead>
+                    <tbody id="summaryTableBody">
+                        <tr><td colspan="6" class="p-4 text-center text-slate-400">Pilih tanggal dan klik Muat Rekap.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const SCRIPT_URL = "MASUKKAN_URL_GOOGLE_APPS_SCRIPT_ANDA_DI_SINI";
+
+        document.getElementById('tanggal').valueAsDate = new Date();
+        document.getElementById('summaryDate').valueAsDate = new Date();
+
+        function updateTokoInfo() {
+            const val = document.getElementById('selectToko').value;
+            if (val) {
+                const parts = val.split('|');
+                document.getElementById('kodeToko').value = parts[0];
+                document.getElementById('namaToko').value = parts[1];
+                document.getElementById('infoTokoDisplay').value = `${parts[0]} - ${parts[1]}`;
+            } else {
+                document.getElementById('kodeToko').value = '';
+                document.getElementById('namaToko').value = '';
+                document.getElementById('infoTokoDisplay').value = '';
+            }
+        }
+
+        function switchTab(tab) {
+            if (tab === 'input') {
+                document.getElementById('sectionInput').classList.remove('hidden');
+                document.getElementById('sectionSummary').classList.add('hidden');
+                document.getElementById('btnInput').className = 'bg-blue-700 px-4 py-2 rounded-lg text-sm font-semibold shadow';
+                document.getElementById('btnSummary').className = 'bg-blue-500 px-4 py-2 rounded-lg text-sm font-semibold shadow';
+            } else {
+                document.getElementById('sectionInput').classList.add('hidden');
+                document.getElementById('sectionSummary').classList.remove('hidden');
+                document.getElementById('btnSummary').className = 'bg-blue-700 px-4 py-2 rounded-lg text-sm font-semibold shadow';
+                document.getElementById('btnInput').className = 'bg-blue-500 px-4 py-2 rounded-lg text-sm font-semibold shadow';
+                loadSummary();
+            }
+        }
+
+        async function saveData(e) {
+            e.preventDefault();
+            const btn = document.getElementById('saveBtn');
+            btn.innerText = "Menyimpan...";
+            btn.disabled = true;
+
+            const payload = {
+                tanggal: document.getElementById('tanggal').value,
+                kodeToko: document.getElementById('kodeToko').value,
+                namaToko: document.getElementById('namaToko').value,
+                shift: document.getElementById('shift').value,
+                netSalesActual: document.getElementById('netSalesActual').value,
+                netSalesTarget: document.getElementById('netSalesTarget').value,
+                tebusMurahTgt: document.getElementById('tmTgt').value,
+                tebusMurahAct: document.getElementById('tmAct').value,
+                serbaGratisTgt: document.getElementById('sgTgt').value,
+                serbaGratisAct: document.getElementById('sgAct').value,
+                suuegeerTgt: document.getElementById('suTgt').value,
+                suuegeerAct: document.getElementById('suAct').value,
+                promoCebanTgt: document.getElementById('pcTgt').value,
+                promoCebanAct: document.getElementById('pcAct').value,
+                newMemberAct: document.getElementById('newMemberAct').value,
+                strukMember: document.getElementById('strukMember').value,
+                totalStruk: document.getElementById('totalStruk').value,
+                feeBase: document.getElementById('feeBase').value
+            };
+
+            try {
+                await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                alert("Data Berhasil Disimpan ke Google Sheet Pusat!");
+            } catch (err) {
+                alert("Gagal koneksi, periksa kembali koneksi internet Anda.");
+            } finally {
+                btn.innerText = "Simpan Data Toko";
+                btn.disabled = false;
+            }
+        }
+
+        async function loadSummary() {
+            const date = document.getElementById('summaryDate').value;
+            const tbody = document.getElementById('summaryTableBody');
+            tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-slate-400">Memuat data rekap 20 toko...</td></tr>`;
+
+            try {
+                const res = await fetch(`${SCRIPT_URL}?action=getSummary&date=${date}`);
+                const json = await res.json();
+                
+                if (json.data && json.data.length > 0) {
+                    tbody.innerHTML = json.data.map(row => `
+                        <tr class="border-b hover:bg-slate-50">
+                            <td class="p-2 border font-mono font-bold">${row.kodeToko}</td>
+                            <td class="p-2 border">${row.namaToko}</td>
+                            <td class="p-2 border">Rp ${Number(row.netSalesActual).toLocaleString()}</td>
+                            <td class="p-2 border">${row.tebusMurahAct}/${row.tebusMurahTgt}</td>
+                            <td class="p-2 border">${row.serbaGratisAct}/${row.serbaGratisTgt}</td>
+                            <td class="p-2 border">${row.newMemberAct}</td>
+                        </tr>
+                    `).join('');
+                } else {
+                    tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-slate-500">Belum ada toko yang mengirim data pada tanggal ini.</td></tr>`;
+                }
+            } catch (err) {
+                tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-red-500">Gagal memuat rekap online.</td></tr>`;
+            }
+        }
+
+        function generateWhatsAppReport() {
+            const tgl = document.getElementById('tanggal').value;
+            const store = document.getElementById('namaToko').value || 'TOKO';
+            const code = document.getElementById('kodeToko').value || 'KODE';
+            const act = Number(document.getElementById('netSalesActual').value || 0).toLocaleString();
+            
+            const text = `REPORT SALES HARIAN\nPERIODE : ${tgl}\nWH : Bekasi\nAM : SRD\nAC : Triyanto\nKD Toko : ${code}\nNama Toko : ${store}\nShift : ${document.getElementById('shift').value}\n======================\n*REVENUE*\n1. NET SALES\n- ACTUAL :Rp ${act}\n======================\n*FOKUS CABANG*\n1. TEBUS MURAH :${document.getElementById('tmTgt').value}/${document.getElementById('tmAct').value}\n2. SERBA GRATIS :${document.getElementById('sgTgt').value}/${document.getElementById('sgAct').value}\n======================\nTerimakasih`;
+            
+            navigator.clipboard.writeText(text);
+            alert("Format pesan WhatsApp berhasil disalin!");
+        }
+    </script>
+</body>
+  </html>
